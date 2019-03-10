@@ -894,6 +894,11 @@ int hostapd_select_hw_mode(struct hostapd_iface *iface)
 		}
 	}
 
+#ifdef CONFIG_MTK_LTE_COEX
+	if (iface->conf->channel == 0)
+		return 2; /* MTK ACS will run to select a channel */
+#endif
+
 	switch (hostapd_check_chans(iface)) {
 	case HOSTAPD_CHAN_VALID:
 		return 0;

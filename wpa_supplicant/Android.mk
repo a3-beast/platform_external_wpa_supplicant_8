@@ -1673,6 +1673,35 @@ ifndef LDO
 LDO=$(CC)
 endif
 
+############ MTK CONFIG START ############
+# Important!!! DO NOT add L_CFLAGS before the very first L_CFLAGS.
+# Otherwise, your configurations will not be defined.
+
+#reduce security handshake time if target BSS is authenticated by EAP
+L_CFLAGS += -DCONFIG_MTK_OKC
+
+#fix supplicant issues
+L_CFLAGS += -DCONFIG_MTK_COMMON
+
+# Support SCC
+ifdef CONFIG_MTK_SCC
+L_CFLAGS += -DCONFIG_MTK_SCC
+endif
+
+# Fix P2P 5G bugs
+ifdef CONFIG_MTK_P2P_5G
+L_CFLAGS += -DCONFIG_MTK_P2P_5G
+endif
+
+ifeq ($(MTK_WAPI_SUPPORT), yes)
+L_CFLAGS += -DCONFIG_WAPI_SUPPORT
+L_CPPFLAGS += -DCONFIG_WAPI_SUPPORT
+OBJS += wapi.c
+INCLUDES += vendor/mediatek/proprietary/hardware/connectivity/wapi-v2
+endif
+
+############ MTK CONFIG END ############
+
 ########################
 
 include $(CLEAR_VARS)
@@ -1716,6 +1745,9 @@ else
 LOCAL_STATIC_LIBRARIES += libnl_2
 endif
 endif
+ifeq ($(MTK_WAPI_SUPPORT), yes)
+LOCAL_SHARED_LIBRARIES += libwapi
+endif
 LOCAL_CFLAGS := $(L_CFLAGS)
 LOCAL_SRC_FILES := $(OBJS)
 LOCAL_C_INCLUDES := $(INCLUDES)
@@ -1726,7 +1758,9 @@ ifeq ($(WPA_SUPPLICANT_USE_HIDL), y)
 LOCAL_SHARED_LIBRARIES += android.hardware.wifi.supplicant@1.0
 LOCAL_SHARED_LIBRARIES += android.hardware.wifi.supplicant@1.1
 LOCAL_SHARED_LIBRARIES += libhidlbase libhidltransport libhwbinder libutils libbase
+LOCAL_SHARED_LIBRARIES += vendor.mediatek.hardware.wifi.supplicant@2.0
 LOCAL_STATIC_LIBRARIES += libwpa_hidl
+LOCAL_STATIC_LIBRARIES += libwpa_mtk_hidl
 endif
 include $(BUILD_EXECUTABLE)
 
@@ -1767,6 +1801,10 @@ LOCAL_EXPORT_C_INCLUDE_DIRS := $(LOCAL_PATH)/wpa_client_include $(LOCAL_PATH)/wp
 include $(BUILD_SHARED_LIBRARY)
 
 ifeq ($(WPA_SUPPLICANT_USE_HIDL), y)
+# export wpa_supplicant CFLAGS and CPPFlAGS to libwpa_mtk_hidl
+# to avoid variable offset difference in some structure's definition.
+MTK_HIDL_CPPFLAGS := $(L_CPPFLAGS)
+MTK_HIDL_CFLAGS := $(L_CFLAGS)
 ### Hidl service library ###
 ########################
 include $(CLEAR_VARS)
@@ -1788,6 +1826,7 @@ LOCAL_SRC_FILES := \
 LOCAL_SHARED_LIBRARIES := \
     android.hardware.wifi.supplicant@1.0 \
     android.hardware.wifi.supplicant@1.1 \
+    vendor.mediatek.hardware.wifi.supplicant@2.0 \
     libbase \
     libhidlbase \
     libhidltransport \

@@ -38,6 +38,9 @@
 #include "sta_info.h"
 #include "vlan.h"
 #include "wps_hostapd.h"
+#ifdef CONFIG_HOTSPOT_MGR_SUPPORT
+#include "mtk_hidl.h"
+#endif /* CONFIG_HOTSPOT_MGR_SUPPORT */
 
 static void ap_sta_remove_in_other_bss(struct hostapd_data *hapd,
 				       struct sta_info *sta);
@@ -1205,6 +1208,10 @@ void ap_sta_set_authorized(struct hostapd_data *hapd, struct sta_info *sta,
 		wpa_msg(hapd->msg_ctx, MSG_INFO, AP_STA_CONNECTED "%s%s",
 			buf, ip_addr);
 
+#ifdef CONFIG_HOTSPOT_MGR_SUPPORT
+		mtk_hostapd_hidl_notify_ap_sta_authorized(hapd->iface, sta->addr);
+#endif /* CONFIG_HOTSPOT_MGR_SUPPORT */
+
 		if (hapd->msg_ctx_parent &&
 		    hapd->msg_ctx_parent != hapd->msg_ctx)
 			wpa_msg_no_global(hapd->msg_ctx_parent, MSG_INFO,
@@ -1212,6 +1219,10 @@ void ap_sta_set_authorized(struct hostapd_data *hapd, struct sta_info *sta,
 					  buf, ip_addr);
 	} else {
 		wpa_msg(hapd->msg_ctx, MSG_INFO, AP_STA_DISCONNECTED "%s", buf);
+
+#ifdef CONFIG_HOTSPOT_MGR_SUPPORT
+		mtk_hostapd_hidl_notify_ap_sta_deauthorized(hapd->iface, sta->addr);
+#endif /* CONFIG_HOTSPOT_MGR_SUPPORT */
 
 		if (hapd->msg_ctx_parent &&
 		    hapd->msg_ctx_parent != hapd->msg_ctx)

@@ -49,6 +49,9 @@
 #include "rrm.h"
 #include "fils_hlp.h"
 #include "acs.h"
+#ifdef CONFIG_HOTSPOT_MGR_SUPPORT
+#include "mtk_iface.h"
+#endif
 
 
 static int hostapd_flush_old_stations(struct hostapd_data *hapd, u16 reason);
@@ -1080,6 +1083,11 @@ static int hostapd_setup_bss(struct hostapd_data *hapd, int first)
 		wpa_printf(MSG_ERROR, "ACL initialization failed.");
 		return -1;
 	}
+#ifdef CONFIG_HOTSPOT_MGR_SUPPORT
+	if (conf->max_num_sta > 0) {
+		hostapd_drv_set_max_client(hapd, conf->max_num_sta);
+	}
+#endif
 	if (hostapd_init_wps(hapd, conf))
 		return -1;
 
@@ -1411,6 +1419,18 @@ static int setup_interface2(struct hostapd_iface *iface)
 			wpa_printf(MSG_DEBUG, "Interface initialization will be completed in a callback (ACS)");
 			return 0;
 		}
+#ifdef CONFIG_MTK_LTE_COEX
+		if (ret == 2) {
+			wpa_printf(MSG_INFO, "MTK ACS is running...");
+			int err = lte_request_scan(iface);
+			if (err < 0)
+				goto fail;
+
+			wpa_printf(MSG_DEBUG,
+				   "Interface initialization will be completed in a callback (MTK ACS)");
+			return 0;
+		}
+#endif
 		ret = hostapd_check_ht_capab(iface);
 		if (ret < 0)
 			goto fail;

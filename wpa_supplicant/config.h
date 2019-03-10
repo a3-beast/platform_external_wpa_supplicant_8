@@ -337,6 +337,9 @@ struct wpa_cred {
 #define CFG_CHANGED_P2P_PASSPHRASE_LEN BIT(16)
 #define CFG_CHANGED_SCHED_SCAN_PLANS BIT(17)
 #define CFG_CHANGED_WOWLAN_TRIGGERS BIT(18)
+#ifdef CONFIG_WAPI_SUPPORT
+#define CFG_CHANGED_WAPI_CERT_ALIAS_LIST BIT(31)
+#endif
 
 /**
  * struct wpa_config - wpa_supplicant configuration data
@@ -1418,6 +1421,11 @@ struct wpa_config {
 	 *	profile automatically
 	 */
 	int dpp_config_processing;
+
+#ifdef CONFIG_WAPI_SUPPORT
+	/* WAPI certificate alias list for wapi cert mode */
+	char *wapi_cert_alias_list;
+#endif
 };
 
 

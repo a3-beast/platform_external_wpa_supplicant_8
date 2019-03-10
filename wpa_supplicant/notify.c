@@ -24,6 +24,7 @@
 #include "sme.h"
 #include "notify.h"
 #include "hidl.h"
+#include "mtk_hidl.h"
 
 int wpas_notify_supplicant_initialized(struct wpa_global *global)
 {
@@ -39,6 +40,7 @@ int wpas_notify_supplicant_initialized(struct wpa_global *global)
 	global->hidl = wpas_hidl_init(global);
 	if (!global->hidl)
 		return -1;
+	mtk_wpas_hidl_init(global);
 #endif /* CONFIG_HIDL */
 
 	return 0;
@@ -53,8 +55,10 @@ void wpas_notify_supplicant_deinitialized(struct wpa_global *global)
 #endif /* CONFIG_DBUS */
 
 #ifdef CONFIG_HIDL
-	if (global->hidl)
+	if (global->hidl) {
 		wpas_hidl_deinit(global->hidl);
+		mtk_wpas_hidl_deinit();
+	}
 #endif /* CONFIG_HIDL */
 }
 
@@ -72,7 +76,7 @@ int wpas_notify_iface_added(struct wpa_supplicant *wpa_s)
 	/* HIDL interface wants to keep track of the P2P mgmt iface. */
 	if (wpas_hidl_register_interface(wpa_s))
 		return -1;
-
+	mtk_wpas_hidl_register_interface(wpa_s);
 	return 0;
 }
 
@@ -89,6 +93,7 @@ void wpas_notify_iface_removed(struct wpa_supplicant *wpa_s)
 
 	/* HIDL interface wants to keep track of the P2P mgmt iface. */
 	wpas_hidl_unregister_interface(wpa_s);
+	mtk_wpas_hidl_unregister_interface(wpa_s);
 }
 
 
@@ -355,6 +360,7 @@ void wpas_notify_network_added(struct wpa_supplicant *wpa_s,
 	if (!ssid->p2p_group && wpa_s->global->p2p_group_formation != wpa_s) {
 		wpas_dbus_register_network(wpa_s, ssid);
 		wpas_hidl_register_network(wpa_s, ssid);
+		mtk_wpas_hidl_register_network(wpa_s, ssid);
 	}
 }
 
@@ -390,6 +396,7 @@ void wpas_notify_network_removed(struct wpa_supplicant *wpa_s,
 	    !wpa_s->p2p_mgmt) {
 		wpas_dbus_unregister_network(wpa_s, ssid->id);
 		wpas_hidl_unregister_network(wpa_s, ssid);
+		mtk_wpas_hidl_unregister_network(wpa_s, ssid);
 	}
 	if (network_is_persistent_group(ssid))
 		wpas_notify_persistent_group_removed(wpa_s, ssid);
@@ -1024,3 +1031,13 @@ void wpas_notify_mesh_peer_disconnected(struct wpa_supplicant *wpa_s,
 }
 
 #endif /* CONFIG_MESH */
+
+void wpas_notify_ess_imm_disassoc(struct wpa_supplicant *wpa_s, const u32 pmf_enabled,
+	const u32 reauth_delay, const char *url)
+{
+	if (wpa_s->p2p_mgmt)
+		return;
+
+	mtk_wpas_hidl_notify_wnm_ess_disassoc_imminent_notice(wpa_s, pmf_enabled, reauth_delay, url);
+}
+

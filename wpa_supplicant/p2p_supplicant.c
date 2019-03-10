@@ -3534,7 +3534,18 @@ static enum chan_allowed wpas_p2p_verify_channel(struct wpa_supplicant *wpa_s,
 		if (!(flag & HOSTAPD_CHAN_HT40PLUS))
 			return NOT_ALLOWED;
 		res2 = has_channel(wpa_s->global, mode, channel + 4, NULL);
+#ifdef CONFIG_MTK_P2P_5G
+/*
+ * [ALPS03415656] Device C cannot join an existing P2P group.
+ * The BW80P80 type of class 130 defined in global_op_class was not handled
+ * properly by AOSP Supplicant. Many channels of class 130 was added to P2P's
+ * supported channels unexpectedly and may cause IOT issues. This patch will
+ * remove class 130 channels if the device does not support 80211ac.
+ */
+	} else if (bw == BW80 || bw == BW80P80) {
+#else
 	} else if (bw == BW80) {
+#endif
 		res2 = wpas_p2p_verify_80mhz(wpa_s, mode, channel, bw);
 	} else if (bw == BW160) {
 		res2 = wpas_p2p_verify_160mhz(wpa_s, mode, channel, bw);

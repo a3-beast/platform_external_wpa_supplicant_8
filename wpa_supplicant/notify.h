@@ -167,4 +167,6 @@ void wpas_notify_hs20_rx_subscription_remediation(struct wpa_supplicant *wpa_s,
 void wpas_notify_hs20_rx_deauth_imminent_notice(struct wpa_supplicant *wpa_s,
 						u8 code, u16 reauth_delay,
 						const char *url);
+void wpas_notify_ess_imm_disassoc(struct wpa_supplicant *wpa_s, const u32 pmf_enabled,
+	const u32 reauth_delay, const char *url);
 #endif /* NOTIFY_H */

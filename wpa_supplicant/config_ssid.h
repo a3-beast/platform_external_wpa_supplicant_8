@@ -896,6 +896,13 @@ struct wpa_ssid {
 	 * currently supported.
 	 */
 	int owe_group;
+
+#ifdef CONFIG_WAPI_SUPPORT
+	/** WAPI
+	 * certificate alias for wapi cert mode
+	 */
+	u8 *wapi_cert_alias;
+#endif
 };
 
 #endif /* CONFIG_SSID_H */

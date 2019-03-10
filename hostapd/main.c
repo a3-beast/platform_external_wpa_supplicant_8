@@ -30,6 +30,9 @@
 #include "ctrl_iface.h"
 #ifdef CONFIG_CTRL_IFACE_HIDL
 #include "hidl.h"
+#ifdef CONFIG_HOTSPOT_MGR_SUPPORT
+#include "mtk_hidl.h"
+#endif /* CONFIG_HOTSPOT_MGR_SUPPORT */
 #endif /* CONFIG_CTRL_IFACE_HIDL */
 
 struct hapd_global {
@@ -902,6 +905,12 @@ int main(int argc, char *argv[])
 		wpa_printf(MSG_ERROR, "Failed to initialize HIDL interface");
 		goto out;
 	}
+#ifdef CONFIG_HOTSPOT_MGR_SUPPORT
+	if (mtk_hostapd_hidl_init(&interfaces)) {
+		wpa_printf(MSG_ERROR, "Failed to initialize MTK HIDL interface");
+		goto out;
+	}
+#endif /* CONFIG_HOTSPOT_MGR_SUPPORT */
 #endif /* CONFIG_CTRL_IFACE_HIDL */
 	hostapd_global_ctrl_iface_init(&interfaces);
 
@@ -915,6 +924,9 @@ int main(int argc, char *argv[])
  out:
 #ifdef CONFIG_CTRL_IFACE_HIDL
 	hostapd_hidl_deinit(&interfaces);
+#ifdef CONFIG_HOTSPOT_MGR_SUPPORT
+	mtk_hostapd_hidl_deinit();
+#endif /* CONFIG_HOTSPOT_MGR_SUPPORT */
 #endif /* CONFIG_CTRL_IFACE_HIDL */
 	hostapd_global_ctrl_iface_deinit(&interfaces);
 	/* Deinitialize all interfaces */

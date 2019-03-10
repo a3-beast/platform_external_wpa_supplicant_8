@@ -11,7 +11,7 @@
 #include "hidl_return_util.h"
 #include "misc_utils.h"
 #include "sta_network.h"
-
+#include <vendor/mediatek/hardware/wifi/supplicant/2.0/ISupplicantStaNetwork.h>
 extern "C" {
 #include "wps_supplicant.h"
 }
@@ -29,11 +29,23 @@ constexpr uint32_t kAllowedKeyMgmtMask =
      static_cast<uint32_t>(ISupplicantStaNetwork::KeyMgmtMask::IEEE8021X) |
      static_cast<uint32_t>(ISupplicantStaNetwork::KeyMgmtMask::FT_EAP) |
      static_cast<uint32_t>(ISupplicantStaNetwork::KeyMgmtMask::FT_PSK) |
-     static_cast<uint32_t>(ISupplicantStaNetwork::KeyMgmtMask::OSEN));
+     static_cast<uint32_t>(ISupplicantStaNetwork::KeyMgmtMask::OSEN) |
+     static_cast<uint32_t>(vendor::mediatek::hardware::wifi::supplicant
+     ::V2_0::ISupplicantStaNetwork::KeyMgmtMask::WPA_EAP_SHA256) |
+/* WAPI start */
+     static_cast<uint32_t>(vendor::mediatek::hardware::wifi::supplicant
+     ::V2_0::ISupplicantStaNetwork::KeyMgmtMask::WAPI_PSK) |
+     static_cast<uint32_t>(vendor::mediatek::hardware::wifi::supplicant
+     ::V2_0::ISupplicantStaNetwork::KeyMgmtMask::WAPI_CERT));
+/* WAPI end */
 constexpr uint32_t kAllowedProtoMask =
     (static_cast<uint32_t>(ISupplicantStaNetwork::ProtoMask::WPA) |
      static_cast<uint32_t>(ISupplicantStaNetwork::ProtoMask::RSN) |
-     static_cast<uint32_t>(ISupplicantStaNetwork::ProtoMask::OSEN));
+     static_cast<uint32_t>(ISupplicantStaNetwork::ProtoMask::OSEN) |
+/* WAPI start */
+     static_cast<uint32_t>(vendor::mediatek::hardware::wifi::supplicant
+     ::V2_0::ISupplicantStaNetwork::ProtoMask::WAPI));
+/* WAPI end */
 constexpr uint32_t kAllowedAuthAlgMask =
     (static_cast<uint32_t>(ISupplicantStaNetwork::AuthAlgMask::OPEN) |
      static_cast<uint32_t>(ISupplicantStaNetwork::AuthAlgMask::SHARED) |
@@ -44,11 +56,19 @@ constexpr uint32_t kAllowedGroupCipherMask =
      static_cast<uint32_t>(ISupplicantStaNetwork::GroupCipherMask::TKIP) |
      static_cast<uint32_t>(ISupplicantStaNetwork::GroupCipherMask::CCMP) |
      static_cast<uint32_t>(
-	 ISupplicantStaNetwork::GroupCipherMask::GTK_NOT_USED));
+	 ISupplicantStaNetwork::GroupCipherMask::GTK_NOT_USED) |
+/* WAPI start */
+	 static_cast<uint32_t>(vendor::mediatek::hardware::wifi::supplicant
+     ::V2_0::ISupplicantStaNetwork::GroupCipherMask::SM4));
+/* WAPI end */
 constexpr uint32_t kAllowedPairwisewCipherMask =
     (static_cast<uint32_t>(ISupplicantStaNetwork::PairwiseCipherMask::NONE) |
      static_cast<uint32_t>(ISupplicantStaNetwork::PairwiseCipherMask::TKIP) |
-     static_cast<uint32_t>(ISupplicantStaNetwork::PairwiseCipherMask::CCMP));
+     static_cast<uint32_t>(ISupplicantStaNetwork::PairwiseCipherMask::CCMP) |
+/* WAPI start */
+     static_cast<uint32_t>(vendor::mediatek::hardware::wifi::supplicant
+     ::V2_0::ISupplicantStaNetwork::PairwiseCipherMask::SM4));
+/* WAPI end */
 
 constexpr uint32_t kEapMethodMax =
     static_cast<uint32_t>(ISupplicantStaNetwork::EapMethod::WFA_UNAUTH_TLS) + 1;

@@ -21,6 +21,7 @@
 #include "bss.h"
 #include "wnm_sta.h"
 #include "hs20_supplicant.h"
+#include "notify.h"
 
 #define MAX_TFS_IE_LEN  1024
 #define WNM_MAX_NEIGHBOR_REPORT 10
@@ -1348,6 +1349,8 @@ static void ieee802_11_rx_bss_trans_mgmt_req(struct wpa_supplicant *wpa_s,
 
 		wpa_msg(wpa_s, MSG_INFO, ESS_DISASSOC_IMMINENT "%d %u %s",
 			wpa_sm_pmf_enabled(wpa_s->wpa),
+			wpa_s->wnm_dissoc_timer * beacon_int * 128 / 125, url);
+		wpas_notify_ess_imm_disassoc(wpa_s, wpa_sm_pmf_enabled(wpa_s->wpa),
 			wpa_s->wnm_dissoc_timer * beacon_int * 128 / 125, url);
 	}
 

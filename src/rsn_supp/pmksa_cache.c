@@ -188,6 +188,13 @@ pmksa_cache_add_entry(struct rsn_pmksa_cache *pmksa,
 					    entry->pmk_len) == 0 &&
 			    os_memcmp_const(pos->pmkid, entry->pmkid,
 					    PMKID_LEN) == 0) {
+#ifdef CONFIG_MTK_OKC
+				/* some driver din't save pmkid too long, so even we reuse exist pmksa,
+					should notify driver again. */
+				wpa_sm_add_pmkid(pmksa->sm, entry->network_ctx, entry->aa, entry->pmkid, 
+					entry->fils_cache_id_set ? entry->fils_cache_id : NULL,
+					entry->pmk, entry->pmk_len);
+#endif
 				wpa_printf(MSG_DEBUG, "WPA: reusing previous "
 					   "PMKSA entry");
 				os_free(entry);

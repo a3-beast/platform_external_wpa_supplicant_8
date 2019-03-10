@@ -1246,7 +1246,10 @@ static int hostapd_ctrl_iface_get_config(struct hostapd_data *hapd,
 }
 
 
-static int hostapd_ctrl_iface_set(struct hostapd_data *hapd, char *cmd)
+#ifndef CONFIG_HOTSPOT_MGR_SUPPORT
+static
+#endif /* CONFIG_HOTSPOT_MGR_SUPPORT */
+int hostapd_ctrl_iface_set(struct hostapd_data *hapd, char *cmd)
 {
 	char *value;
 	int ret = 0;
@@ -1348,7 +1351,12 @@ static int hostapd_ctrl_iface_set(struct hostapd_data *hapd, char *cmd)
 						WLAN_REASON_UNSPECIFIED);
 			}
 		} else if (hapd->conf->macaddr_acl == DENY_UNLESS_ACCEPTED &&
+#ifdef CONFIG_HOTSPOT_MGR_SUPPORT
+			   (os_strcasecmp(cmd, "accept_mac_file") == 0 ||
+			    os_strcasecmp(cmd, "macaddr_acl") == 0)) {
+#else
 			   os_strcasecmp(cmd, "accept_mac_file") == 0) {
+#endif /* CONFIG_HOTSPOT_MGR_SUPPORT */
 			for (sta = hapd->sta_list; sta; sta = sta->next) {
 				if (!hostapd_maclist_found(
 					    hapd->conf->accept_mac,

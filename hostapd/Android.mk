@@ -1072,12 +1072,23 @@ else
 OBJS_c += src/utils/edit_simple.c
 endif
 
-ifeq ($(filter gce_x86 gce_x86_64 calypso, $(TARGET_DEVICE)),)
+ifeq ($(filter gce_x86 gce_x86_64 calypso generic_x86 generic_x86_64 generic generic_arm64, $(TARGET_DEVICE)),)
 ifdef CONFIG_CTRL_IFACE_HIDL
 HOSTAPD_USE_HIDL=y
 L_CFLAGS += -DCONFIG_CTRL_IFACE_HIDL
 L_CPPFLAGS = -Wall -Werror
 endif
+endif
+
+# MTK WiFi Hotspot Manager Support
+ifdef CONFIG_HOTSPOT_MGR_SUPPORT
+L_CFLAGS += -DCONFIG_HOTSPOT_MGR_SUPPORT
+OBJS += src/ap/mtk_iface.c
+endif
+
+# Set MTK ACS for LTE coexistence
+ifdef CONFIG_MTK_LTE_COEX
+L_CFLAGS += -DCONFIG_MTK_LTE_COEX
 endif
 
 ########################
@@ -1116,6 +1127,10 @@ ifeq ($(HOSTAPD_USE_HIDL), y)
 LOCAL_SHARED_LIBRARIES += android.hardware.wifi.hostapd@1.0
 LOCAL_SHARED_LIBRARIES += libbase libhidlbase libhidltransport libhwbinder libutils
 LOCAL_STATIC_LIBRARIES += libhostapd_hidl
+ifdef CONFIG_HOTSPOT_MGR_SUPPORT
+LOCAL_SHARED_LIBRARIES += vendor.mediatek.hardware.wifi.hostapd@2.0
+LOCAL_STATIC_LIBRARIES += libhostapd_mtk_hidl
+endif
 endif
 LOCAL_CFLAGS := $(L_CFLAGS)
 LOCAL_SRC_FILES := $(OBJS)
@@ -1123,31 +1138,13 @@ LOCAL_C_INCLUDES := $(INCLUDES)
 LOCAL_INIT_RC := hostapd.android.rc
 include $(BUILD_EXECUTABLE)
 
-########################
-include $(CLEAR_VARS)
-LOCAL_MODULE := hostapd_nohidl
-LOCAL_MODULE_TAGS := optional
-LOCAL_PROPRIETARY_MODULE := true
-ifdef CONFIG_DRIVER_CUSTOM
-LOCAL_STATIC_LIBRARIES := libCustomWifi
-endif
-ifneq ($(BOARD_HOSTAPD_PRIVATE_LIB),)
-LOCAL_STATIC_LIBRARIES += $(BOARD_HOSTAPD_PRIVATE_LIB)
-endif
-LOCAL_SHARED_LIBRARIES := libc libcutils liblog libcrypto libssl
-ifdef CONFIG_DRIVER_NL80211
-ifneq ($(wildcard external/libnl),)
-LOCAL_SHARED_LIBRARIES += libnl
-else
-LOCAL_STATIC_LIBRARIES += libnl_2
-endif
-endif
-LOCAL_CFLAGS := $(patsubst -DCONFIG_CTRL_IFACE_HIDL,,$(L_CFLAGS))
-LOCAL_SRC_FILES := $(OBJS)
-LOCAL_C_INCLUDES := $(INCLUDES)
-include $(BUILD_EXECUTABLE)
-
 ifeq ($(HOSTAPD_USE_HIDL), y)
+ifdef CONFIG_HOTSPOT_MGR_SUPPORT
+# export hostapd CFLAGS and CPPFlAGS to libhostapd_mtk_hidl
+# to avoid variable offset difference in some structure's definition.
+MTK_HOSTAPD_HIDL_CPPFLAGS := $(L_CPPFLAGS)
+MTK_HOSTAPD_HIDL_CFLAGS := $(L_CFLAGS)
+endif
 ### Hidl service library ###
 ########################
 include $(CLEAR_VARS)
@@ -1168,6 +1165,9 @@ LOCAL_SHARED_LIBRARIES := \
     libhwbinder \
     libutils \
     liblog
+ifdef CONFIG_HOTSPOT_MGR_SUPPORT
+LOCAL_SHARED_LIBRARIES += vendor.mediatek.hardware.wifi.hostapd@2.0
+endif
 LOCAL_EXPORT_C_INCLUDE_DIRS := \
     $(LOCAL_PATH)/hidl/$(HIDL_INTERFACE_VERSION)
 include $(BUILD_STATIC_LIBRARY)
